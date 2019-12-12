@@ -10,7 +10,7 @@ me.dir(-1) + "audio/clap.wav" => clap.read;
 clap.samples() => clap.pos;
 .75 => clap.gain;
 
-.2 => delay.gain;
+.3 => delay.gain;
 tempo.note => delay.max;
 
 //

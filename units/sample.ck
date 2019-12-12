@@ -1,14 +1,17 @@
 BPM tempo;
 
-SndBuf sample => ADSR adsr => LPF filter => dac;
+//SndBuf sample => ADSR adsr => LPF filter => dac;
+SndBuf sample => ADSR adsr => LPF filter => NRev rev => dac;
 filter => Delay rev1 => dac;
 filter => Delay rev2 => dac.left;
 filter => Delay rev3 => Pan2 stereo => dac;
-rev1 => rev1;
-rev2 => rev2;
-rev3 => rev3;
+rev1 => OneZero lp1 => rev1;
+rev2 => OneZero lp2 => rev2;
+rev3 => OneZero lp3 => rev3;
 
 //
+
+.15 => rev.mix;
 
 loadSample("audio/sample_a.wav");
 sample.samples() => sample.pos;
@@ -20,9 +23,9 @@ sample.samples() => sample.pos;
 2.0 => filter.Q;
 
 tempo.note * 2 => rev1.max => rev2.max => rev3.max;
-.3 => rev1.gain;
+.175 => rev1.gain;
 .1 => rev2.gain;
-.15 => rev3.gain;
+.4 => rev3.gain;
 
 //
 
@@ -76,10 +79,13 @@ function void modStereoPan(Pan2 stereo, dur modTime, float min, float max, float
 
 //
 
-spork ~ modFilterFreq(filter, (tempo.note * 4) / 3, Std.mtof(75), Std.mtof(110), .5);
 spork ~ modStereoPan(stereo, tempo.note * Math.random2f(.5, 1.5), -1, 1, .01);
 
+Shred filterFreqShred;
+
 while(true) {
+    spork ~ modFilterFreq(filter, (tempo.note * 4) / 3, Std.mtof(Math.random2(50, 80)), Std.mtof(115), .5) @=> filterFreqShred;
+
     tempo.halfNote * Math.random2f(.5, 1.5) => rev1.delay;
     tempo.quarterNote * Math.random2f(.5, 2.0) => rev2.delay;
     tempo.note * Math.random2f(.5, 2.0) => rev2.delay;
@@ -102,6 +108,8 @@ while(true) {
         1 => adsr.keyOff;
         adsr.releaseTime() => now;
     }
+
+    Machine.remove(filterFreqShred.id());
 }
 
 function void loadSample(string filename) {

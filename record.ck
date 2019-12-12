@@ -1,7 +1,7 @@
 me.arg(0) => string filename;
 
 if (filename.length() == 0) {
-    "kashmir - mastered.wav" => filename;
+    "kashmir v3.wav" => filename;
 }
 
 dac => WvOut2 w => blackhole;
